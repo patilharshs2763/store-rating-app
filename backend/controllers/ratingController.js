@@ -28,23 +28,19 @@ async function giveRating(req, res) {
 
         const { user_id, store_id, rating } = value;
 
-        // Check if store exists
         const storeExists = await db.stores.findOne({ where: { store_id } });
         if (!storeExists) {
             return res.status(404).json({ message: 'Store not found' });
         }
 
-        // Check if user already rated this store
         const existingRating = await db.ratings.findOne({
             where: { user_id, store_id }
         });
 
         if (existingRating) {
-            // Update existing rating
             await existingRating.update({ rating });
             return res.status(200).json({ message: 'Rating updated successfully' });
         } else {
-            // Create new rating
             await db.ratings.create({ user_id, store_id, rating });
             return res.status(201).json({ message: 'Rating submitted successfully' });
         }

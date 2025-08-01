@@ -22,8 +22,8 @@ async function createStore(req, res) {
     try {
         const { error, value } = storeSchema.validate(req.body);
         if (error) {
-            const errorMessage = error.messages.replace(/"/g, '');
-            return res.status(404).json({
+            const errorMessage = error.message.replace(/"/g, '');
+            return res.status(400).json({
                 error: errorMessage
             });
         }
@@ -97,7 +97,7 @@ async function getAllStores(req, res) {
         }
 
         if (order.length === 0) {
-            order.push(['id', 'DESC']);
+            order.push(['id', 'ASC']);
         }
         let whereclause = {};
         if (search) {

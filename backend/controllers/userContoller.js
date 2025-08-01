@@ -1,11 +1,11 @@
 const db = require('../models');
 const Joi = require('joi');
-const bycrpt = require('bcrypt');
+const bcrypt = require('bcrypt');
 const { Op, where } = require('sequelize');
 
 async function registerUser(req, res) {
     const userSchema = Joi.object({
-        name: Joi.string().min(3).max(60).required().messages({
+        name: Joi.string().min(20).max(60).required().messages({
             'any.required': 'Name is required'
         }),
         email: Joi.string().email().required().messages({
@@ -14,15 +14,23 @@ async function registerUser(req, res) {
         address: Joi.string().max(400).required().messages({
             'any.required': 'Address is required'
         }),
-        password: Joi.string().min(8).required().messages({
-            'any.required': 'Password is required'
-        }),
+        password: Joi.string()
+            .min(8)
+            .max(16)
+            .pattern(/^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,16}$/)
+            .required()
+            .messages({
+                'string.empty': 'Password is required',
+                'string.min': 'Password must be at least 8 characters',
+                'string.max': 'Password must be at most 16 characters',
+                'string.pattern.base': 'Password must include at least one uppercase letter and one special character',
+            }),
     })
     try {
         const { error, value } = userSchema.validate(req.body);
         if (error) {
             const errorMessage = error.message.replace(/"/g, '');
-            return res.status(404).json({
+            return res.status(400).json({
                 error: errorMessage
             });
         }
@@ -35,7 +43,7 @@ async function registerUser(req, res) {
         if (isUserExist) {
             return res.status(409).json({ message: `User already exists with name ${value.email}` })
         }
-        const hashedPassword = await bycrpt.hash(value.password, 10);
+        const hashedPassword = await bcrypt.hash(value.password, 10);
         value.password = hashedPassword;
         console.log('value: ', value);
 
@@ -57,7 +65,7 @@ async function registerUser(req, res) {
 }
 async function createUser(req, res) {
     const userSchema = Joi.object({
-        name: Joi.string().min(3).max(60).required().messages({
+        name: Joi.string().min(20).max(60).required().messages({
             'any.required': 'Name is required'
         }),
         email: Joi.string().email().required().messages({
@@ -66,9 +74,17 @@ async function createUser(req, res) {
         address: Joi.string().max(400).required().messages({
             'any.required': 'Address is required'
         }),
-        password: Joi.string().min(8).required().messages({
-            'any.required': 'Password is required'
-        }),
+        password: Joi.string()
+            .min(8)
+            .max(16)
+            .pattern(/^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,16}$/)
+            .required()
+            .messages({
+                'string.empty': 'Password is required',
+                'string.min': 'Password must be at least 8 characters',
+                'string.max': 'Password must be at most 16 characters',
+                'string.pattern.base': 'Password must include at least one uppercase letter and one special character',
+            }),
         role: Joi.string().valid('Normal User', 'System Administrator', 'Store Owner').required().messages({
             'any.required': 'Role is required',
             'any.valid': 'Not a valide role'
@@ -91,7 +107,7 @@ async function createUser(req, res) {
         if (isUserExist) {
             return res.status(409).json({ message: `User already exists with email ${value.email}` })
         }
-        const hashedPassword = await bycrpt.hash(value.password, 10);
+        const hashedPassword = await bcrypt.hash(value.password, 10);
         value.password = hashedPassword;
         console.log('value: ', value);
 
@@ -140,7 +156,7 @@ async function getAllUsers(req, res) {
         if (order.length === 0) {
             order.push(['id', 'ASC']);
         }
-        let whereclause;
+        let whereclause = {};
         if (search) {
             whereclause = {
                 ...whereclause,
@@ -201,7 +217,7 @@ async function getAllUsers(req, res) {
                             {
                                 model: db.stores,
                                 as: 'store_ratings',
-                                require: true
+                                required: true
                             }
                         ]
                     }
@@ -212,6 +228,8 @@ async function getAllUsers(req, res) {
             result = await db.users.findAndCountAll({
                 attributes: { exclude: ['password'] },
                 where: whereclause,
+                distinct: true,
+
                 include: [
                     {
                         model: db.stores,
@@ -238,13 +256,15 @@ async function getAllUsers(req, res) {
             })
         }
         console.log("result", result);
-        return res.status(200).json({
-            message: 'Data fetched successully',
+        let resultObj = {
+            message: 'Data fetched successfullt',
             data: result.rows,
-            store_details: ownerStoreDetails
-
-        })
-
+            total: result.count
+        }
+        if (userRole === 'Store Owner') {
+            resultObj.store_details = ownerStoreDetails
+        }
+        return res.status(200).json(resultObj)
     } catch (error) {
         console.log('error: ', error);
         return res.status(500).json({ error: 'Server error' })

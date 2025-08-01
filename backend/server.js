@@ -6,7 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const storeRoutes = require('./routes/storeRoutes');
 const ratingRoutes = require('./routes/ratingRoute');
 const dashboardStat = require('./routes/dashboardRoutes');
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 const app = express();
 app.use(cors({

@@ -8,7 +8,17 @@ require('dotenv').config();
 async function loginUser(req, res) {
     const loginSchema = Joi.object({
         email: Joi.string().email().required(),
-        password: Joi.string().min(8).required(),
+        password: Joi.string()
+            .min(8)
+            .max(16)
+            .pattern(/^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,16}$/)
+            .required()
+            .messages({
+                'string.empty': 'Password is required',
+                'string.min': 'Password must be at least 8 characters',
+                'string.max': 'Password must be at most 16 characters',
+                'string.pattern.base': 'Password must include at least one uppercase letter and one special character',
+            }),
     })
     try {
         const { error, value } = loginSchema.validate(req.body);
@@ -27,13 +37,13 @@ async function loginUser(req, res) {
         })
 
         if (!isUserExist) {
-            return res.status(400).json({
+            return res.status(404).json({
                 message: `User not found with email ${value.email}`
             })
         }
         const isValidPass = await bycrpt.compare(value.password, isUserExist.password);
         if (!isValidPass) {
-            return res.status(400).json({
+            return res.status(401).json({
                 message: 'Invalid Password'
             })
         }
@@ -65,7 +75,17 @@ async function loginUser(req, res) {
 async function changePassword(req, res) {
     const passChange = Joi.object({
         email: Joi.string().email().required(),
-        new_password: Joi.string().min(8).required(),
+        new_password: Joi.string()
+            .min(8)
+            .max(16)
+            .pattern(/^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,16}$/)
+            .required()
+            .messages({
+                'string.empty': 'Password is required',
+                'string.min': 'Password must be at least 8 characters',
+                'string.max': 'Password must be at most 16 characters',
+                'string.pattern.base': 'Password must include at least one uppercase letter and one special character',
+            }),
     })
     try {
         const { error, value } = passChange.validate(req.body);
@@ -94,7 +114,7 @@ async function changePassword(req, res) {
             { where: { email: value.email } }
         )
         if (!result) {
-            return res.status(400).json({
+            return res.status(500).json({
                 message: 'Failed to update password'
             })
         }
