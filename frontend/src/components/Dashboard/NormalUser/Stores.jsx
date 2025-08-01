@@ -5,6 +5,7 @@ import storeImage1 from '../../../images/store.png'
 import { getStores, rateStore } from '../../../APIs';
 import { toast } from 'react-toastify';
 import Pagination from 'react-bootstrap/Pagination';
+import { Spinner } from 'react-bootstrap';
 
 const Stores = () => {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
@@ -20,6 +21,7 @@ const Stores = () => {
     const [total, setTotal] = useState(0);
     const [sortDir, setSortDir] = useState(null);
     const [sortField, setSortField] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleClose = () => {
         if (editing) {
@@ -81,8 +83,7 @@ const Stores = () => {
     }
     const handleSubmitRating = async () => {
         setEditing(false);
-        console.log(`Submitted overall_rating of ${userRating} for store ${selectedStore}`);
-        console.log('selectedStore: ', selectedStore);
+        setIsLoading(true);
         const payload = {
             store_id: selectedStore?.store_id,
             user_id: loggedInUser?.user_id,
@@ -97,13 +98,16 @@ const Stores = () => {
             })
             fetch_stores();
             setShow(false);
+            setIsLoading(false);
+
         } catch (error) {
-            toast.error("Failed to give rating", {
+            toast.error(error?.response?.data?.error || "Failed to give rating", {
                 autoClose: 2000,
                 position: 'top-right'
             })
             console.log('error: ', error);
             setShow(false);
+            setIsLoading(false);
 
         }
 
@@ -122,7 +126,7 @@ const Stores = () => {
                 <input
                     type="text"
                     className='form-control mb-3'
-                    placeholder='Search Stores...'
+                    placeholder='Search Stores or address'
                     style={{ maxWidth: '400px' }}
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
@@ -132,7 +136,7 @@ const Stores = () => {
             <div className='table-responsive'>
                 <table className="table  table-bordered">
                     <thead>
-                        <tr>
+                        <tr className='text-center'>
                             <th scope="col">Sr.No</th>
                             <th scope="col">
                                 <div style={{ cursor: 'pointer' }} onClick={() => handleSort('name')}>
@@ -149,18 +153,22 @@ const Stores = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {storeData.data.length === 0 ? (
-                            <tr>
-                                <td colSpan="6" className="text-center">No Stores Found</td>
+                        {storeData?.loading ? (
+                            <tr className='text-center'>
+                                <td colSpan={5}><Spinner /></td>
                             </tr>
+
                         ) :
-                            storeData.data.map((store, ind) =>
-                                <tr key={ind}>
-                                    <th scope="row">{(currentPage - 1) * 10 + ind + 1}</th>
-                                    <td>{store.name}</td>
-                                    <td>{store.address}</td>
-                                    <td>
-                                        <p className=''>
+                            storeData.data.length === 0 ?
+                                <tr>
+                                    <td colSpan="6" className="text-center">No Stores Found</td>
+                                </tr> :
+                                storeData.data.map((store, ind) =>
+                                    <tr key={ind}>
+                                        <th scope="row" className='text-center'>{(currentPage - 1) * 10 + ind + 1}</th>
+                                        <td>{store.name}</td>
+                                        <td>{store.address}</td>
+                                        <td className='text-center'>
                                             {[1, 2, 3, 4, 5].map(i => (
                                                 <Star
                                                     key={i}
@@ -168,11 +176,8 @@ const Stores = () => {
                                                     fill={i <= Math.round(store?.overall_rating) ? '#ffd700' : '#ddd'}
                                                 />
                                             ))}
-
-                                        </p>
-                                    </td>
-                                    <td>
-                                        <p className=''>
+                                        </td>
+                                        <td className='text-center'>
                                             {[1, 2, 3, 4, 5].map(i => (
                                                 <Star
                                                     key={i}
@@ -180,18 +185,16 @@ const Stores = () => {
                                                     fill={i <= Math.round(store?.my_rating) ? '#ffd700' : '#ddd'}
                                                 />
                                             ))}
-
-                                        </p>
-                                    </td>
-                                    <td>
-                                        <button type="button" className="btn btn-primary"
-                                            onClick={() => handleShow(store)}
-                                        >
-                                            Rate this Store
-                                        </button>
-                                    </td>
-                                </tr>
-                            )
+                                        </td>
+                                        <td className='text-center'>
+                                            <button type="button" className="btn btn-primary"
+                                                onClick={() => handleShow(store)}
+                                            >
+                                                Rate this Store
+                                            </button>
+                                        </td>
+                                    </tr>
+                                )
                         }
                     </tbody>
                 </table>
@@ -219,11 +222,6 @@ const Stores = () => {
                     />
                 </Pagination>
             </div>
-
-
-
-
-
             <Modal
                 show={show}
                 onHide={handleClose}
@@ -231,7 +229,7 @@ const Stores = () => {
                 keyboard={false}
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Modal title</Modal.Title>
+                    <Modal.Title>{selectedStore && selectedStore.name}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div class="card p-2" >
@@ -295,8 +293,9 @@ const Stores = () => {
                                                 }}>
                                                     Cancel
                                                 </button>
-                                                <button type="button" className="btn btn-success btn-sm" onClick={handleSubmitRating}>
+                                                <button type="button" className="btn btn-success btn-sm" disabled={isLoading} onClick={handleSubmitRating}>
                                                     Done
+                                                    {isLoading && <Spinner size='sm' className='mx-2' />}
                                                 </button>
                                             </>
                                         )}

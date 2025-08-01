@@ -1,3 +1,4 @@
+import { CircleAlert } from 'lucide-react';
 import React from 'react';
 
 class ErrorBoundary extends React.Component {
@@ -16,7 +17,13 @@ class ErrorBoundary extends React.Component {
 
     render() {
         if (this.state.hasError) {
-            return <h2>Something went wrong.</h2>;
+            return (
+                <div className='d-flex justify-content-center align-items-center vh-100'>
+                    <h1 className='text-danger'>
+                        Something went wrong <CircleAlert size={30} />
+                    </h1>
+                </div>
+            )
         }
         return this.props.children;
     }

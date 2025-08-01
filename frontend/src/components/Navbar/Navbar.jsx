@@ -10,15 +10,15 @@ const Navbar = () => {
     const navigate = useNavigate();
     return (
         <div>
-            <nav className="navbar navbar-expand-lg bg-light">
+            <nav className="navbar navbar-expand-lg navbar_style">
                 <div className="container-fluid">
-                    <Link to="/dashboard" className="navbar-brand ">SR</Link>
+                    <Link to="/dashboard" className="navbar-brand fw-bold ">Store App</Link>
                     {/* <a className="navbar-brand" href="#">Navbar w/ text</a> */}
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
                         <span className="navbar-toggler-icon"></span>
                     </button>
                     <div className="collapse navbar-collapse" id="navbarText">
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-bold">
                             <li className="nav-item">
                                 <Link className="nav-link " to='/dashboard'>Dashboard</Link>
                             </li>
@@ -37,21 +37,21 @@ const Navbar = () => {
                         <ul className="navbar-nav mb-2 mb-lg-0">
                             <li className="nav-item dropdown">
                                 <a
-                                    className="nav-link dropdown-toggle"
+                                    className="nav-link dropdown-toggle fw-bold"
                                     href="/#"
                                     id="userDropdown"
                                     role="button"
                                     data-bs-toggle="dropdown"
                                     aria-expanded="false"
                                 >
-                                    User
+                                    {loggedInUser?.name}
                                 </a>
                                 <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                     <li>
-                                        <Link to="/profile" className="dropdown-item">Change Password</Link>
+                                        <Link to="/profile" className="dropdown-item ">Profile</Link>
                                     </li>
                                     <li>
-                                        <Link to="/login" className="dropdown-item" onClick={() => { localStorage.removeItem('token'); logout(); navigate('/login') }}>Logout</Link>
+                                        <Link to="/login" className="dropdown-item" onClick={() => { localStorage.removeItem('token'); logout(); localStorage.removeItem('loggedInUser'); navigate('/login') }}>Logout</Link>
                                     </li>
                                 </ul>
                             </li>

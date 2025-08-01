@@ -2,6 +2,7 @@ import { ArrowDownUp } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
 import { dashboardStats } from '../../../APIs';
+import { Spinner } from 'react-bootstrap';
 
 
 const DashboardAdmin = () => {
@@ -46,39 +47,43 @@ const DashboardAdmin = () => {
 
     return (
         <div className='container mt-2'>
-            DashboardAdmin
-            <div className="row">
-                <div className="col-sm-12 col-md-4 mb-3 mb-sm-0">
-                    <div className="card text-center">
-                        <div className="card-body">
-                            <h5 className="card-title">Total Users</h5>
-                            <p className="card-text">{data?.data[0]?.totalUsers}</p>
-                            <Link to='/users' className="btn btn-primary">View Users</Link>
+            <h2>Dashboard</h2>
+            {data.loading ?
+                <div className='d-flex justify-content-center align-contents-center'>
+                    <Spinner />
+                </div> :
+                <div className="row">
+                    <div className="col-sm-12 col-md-4 mb-3 mb-sm-0">
+                        <div className="card text-center stat_card" style={{ height: '150px' }}>
+                            <div className="card-body">
+                                <h5 className="card-title">Total Users</h5>
+                                <p className="card-text">{data?.data[0]?.totalUsers}</p>
+                                <Link to='/users' className="btn btn-primary">View Users</Link>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="col-sm-12 col-md-4 mb-3 mb-sm-0">
-                    <div className="card text-center">
-                        <div className="card-body">
-                            <h5 className="card-title">Total Stores</h5>
-                            <p className="card-text">{data?.data[0]?.totalStores}</p>
-                            <Link to='/stores' className="btn btn-primary">View Stores</Link>
+                    <div className="col-sm-12 col-md-4 mb-3 mb-sm-0">
+                        <div className="card text-center stat_card" style={{ height: '150px' }}>
+                            <div className="card-body">
+                                <h5 className="card-title">Total Stores</h5>
+                                <p className="card-text">{data?.data[0]?.totalStores}</p>
+                                <Link to='/stores' className="btn btn-primary">View Stores</Link>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="col-sm-12 col-md-4 mb-3 mb-sm-0">
-                    <div className="card text-center">
-                        <div className="card-body">
-                            <h5 className="card-title">Total Ratings</h5>
-                            <p className="card-text">{data?.data[0]?.totalStores}</p>
-                            {/* <a href="#" className="btn btn-primary">View Stores</a> */}
-                            <Link to='/users' className="btn btn-primary">View Ratings</Link>
+                    <div className="col-sm-12 col-md-4 mb-3 mb-sm-0">
+                        <div className="card text-center stat_card" style={{ height: '150px' }}>
+                            <div className="card-body">
+                                <h5 className="card-title">Total Ratings</h5>
+                                <p className="card-text">{data?.data[0]?.totalStores}</p>
+                                {/* <a href="#" className="btn btn-primary">View Stores</a> */}
+                            </div>
                         </div>
                     </div>
-                </div>
 
 
-            </div>
+                </div>
+            }
         </div>
     )
 }

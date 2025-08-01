@@ -6,6 +6,7 @@ import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { changePassword } from '../../APIs';
 import { useNavigate } from 'react-router-dom';
+import { Spinner } from 'react-bootstrap';
 const changePasswordSchema = yup.object().shape({
     new_password: yup
         .string()
@@ -18,7 +19,7 @@ const Profile = () => {
     const navigate = useNavigate();
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     const [showPassword, setShowPassword] = useState(false);
-
+    const [isUpdating, setIsUpdating] = useState(false);
     const {
         register,
         handleSubmit,
@@ -28,13 +29,13 @@ const Profile = () => {
     });
 
     const onSubmit = async (data) => {
-        console.log('Validated new password:', data.new_password);
         const payload = {
             email: loggedInUser?.email,
             new_password: data?.new_password
         }
+        setIsUpdating(true);
         try {
-            console.log("payload", payload)
+
             const response = await changePassword(payload);
             console.log('response: ', response);
             toast.success('Password Updated', {
@@ -42,12 +43,14 @@ const Profile = () => {
                 position: 'top-right'
             })
             navigate('/dashboard');
+            setIsUpdating(false);
         } catch (error) {
             console.log('error: ', error);
             toast.error("Failed to change password", {
                 autoClose: 2000,
                 position: 'top-right'
             })
+            setIsUpdating(false);
 
         }
 
@@ -55,13 +58,13 @@ const Profile = () => {
 
     return (
         <div className='d-flex justify-content-center mt-2'>
-            <div className="card mb-3" style={{ width: '22rem' }}>
+            <div className="card mb-3 card_style" style={{ width: '22rem' }}>
                 <div className="card-header text-center">
                     My Profile
                 </div>
                 <div className="card-body">
 
-                    <h5 className="card-title">{loggedInUser?.name}</h5>
+                    <h5 className="card-title">Name:{loggedInUser?.name}</h5>
                     <p className="card-text">Role:{loggedInUser?.role}</p>
                     <p className="card-text">Address:{loggedInUser?.address}</p>
                     <p className="card-text">Email:{loggedInUser?.email}</p>
@@ -86,7 +89,10 @@ const Profile = () => {
                                 )}
                             </div>
                         </div>
-                        <button type="submit" className="btn btn-primary w-100">Update Password</button>
+                        <button type="submit" className="btn btn-primary w-100" disabled={isUpdating}>
+                            Update Password
+                            {isUpdating && <Spinner size='sm' className='mx-2' />}
+                        </button>
                     </form>
                 </div>
             </div>

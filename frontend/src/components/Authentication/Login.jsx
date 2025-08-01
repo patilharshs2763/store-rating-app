@@ -8,6 +8,7 @@ import { jwtDecode } from 'jwt-decode';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AuthContext } from './AuthContext';
+import { Spinner } from 'react-bootstrap';
 
 export default function Login() {
     const { login } = useContext(AuthContext)
@@ -28,6 +29,8 @@ export default function Login() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
+    const [isLogging, setIsLogging] = useState(false);
+
 
     useEffect(() => {
         console.log("Validation errors:", errors);
@@ -42,7 +45,7 @@ export default function Login() {
 
 
     const onSubmit = async (data) => {
-        console.log('Login data:', data);
+        setIsLogging(true);
         try {
             const result = await loginUser(data);
             const token = result?.data?.token;
@@ -57,25 +60,27 @@ export default function Login() {
                 autoClose: 2000,
                 position: 'top-right'
             })
+            setIsLogging(false);
         } catch (error) {
             console.log('error: ', error);
             toast.error(error?.response?.data?.message || "Failed to login", {
                 autoClose: 2000,
                 position: 'top-right'
             })
+            setIsLogging(false);
         }
     };
 
     return (
         <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-            <div className="d-flex card p-0 card-border w-100 flex-column" style={{ maxWidth: '500px' }}>
-                <div className=' p-0'>
+            <div className="d-flex card p-0 card-border w-100 flex-column card_style" style={{ maxWidth: '500px' }}>
+                <div className=' p-0 mt-2'>
                     <h2 className='text-center'>Login</h2>
                 </div>
                 <div className=' p-4'>
                     <form onSubmit={handleSubmit(onSubmit)} noValidate>
                         <div className="mb-1">
-                            <label className="form-label">Email</label>
+                            <label className="form-label">Email</label><span className='text-danger'>*</span>
                             <input
                                 type="email"
                                 {...register('email')}
@@ -88,7 +93,7 @@ export default function Login() {
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Password</label>
+                            <label className="form-label">Password</label><span className='text-danger'>*</span>
                             <div className="input-group">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
@@ -109,7 +114,10 @@ export default function Login() {
                             </div>
                         </div>
                         <div className='d-flex flex-column justify-content-center'>
-                            <button type="submit" className="btn btn-primary w-100">Login</button>
+                            <button type="submit" className="btn btn-primary w-100" disabled={isLogging}>
+                                Login
+                                {isLogging && <Spinner size='sm' className='mx-2' />}
+                            </button>
                             <p className="text-center mb-4 font-size-medium second-primary-color ">
                                 <span className='font-size-small fst-italic'>OR</span><br />
                                 Do not have an account yet? <Link to="/signup">Create account</Link>

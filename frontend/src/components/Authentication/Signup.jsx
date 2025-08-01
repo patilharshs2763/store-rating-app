@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { signup } from '../../APIs';
 import { toast } from 'react-toastify';
+import { Spinner } from 'react-bootstrap';
 
 
 
@@ -15,7 +16,7 @@ export default function Signup() {
         name: yup.string().min(20, 'Min 20 characters').max(60, 'Max 60 characters').required('Name is required'),
         email: yup.string().email('Invalid email').required('Email is required'),
         address: yup.string().max(400, 'Max 400 characters').required('Address is required'),
-        password: yup.string().min(8, 'Min 8 characters')
+        password: yup.string().min(8, 'Min 8 characters').max(16, 'Max 16 characters')
             .matches(/[A-Z]/, 'Must contain at least one uppercase letter')
             .matches(/[!@#$%^&*]/, 'Must contain at least one special character')
             .required('Password is required'),
@@ -29,6 +30,7 @@ export default function Signup() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
 
     useEffect(() => {
@@ -39,7 +41,7 @@ export default function Signup() {
     }, [])
 
     const onSubmit = async (data) => {
-        console.log('Login data:', data);
+        setIsLoading(true);
         try {
             const response = await signup(data);
             console.log('response: ', response);
@@ -48,26 +50,28 @@ export default function Signup() {
                 position: 'top-right'
             })
             navigate('/login');
+            setIsLoading(false);
         } catch (error) {
             console.log('error: ', error);
             toast.error(error?.response?.data?.message || "Failed to signup", {
                 autoClose: 2000,
                 position: 'top-right'
             })
+            setIsLoading(false);
 
         }
     };
 
     return (
         <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-            <div className="d-flex card p-0 card-border w-100 flex-column" style={{ maxWidth: '500px' }}>
-                <div className=' p-0'>
+            <div className="d-flex card p-0 card-border w-100 flex-column card_style" style={{ maxWidth: '500px' }}>
+                <div className=' p-0 mt-2'>
                     <h2 className='text-center'>Signup</h2>
                 </div>
                 <div className=' p-4'>
                     <form onSubmit={handleSubmit(onSubmit)} noValidate>
                         <div className="mb-1">
-                            <label className="form-label">Name</label>
+                            <label className="form-label">Name</label><span className='text-danger'>*</span>
                             <input
                                 type="name"
                                 {...register('name')}
@@ -79,7 +83,7 @@ export default function Signup() {
                             </div>
                         </div>
                         <div className="mb-1">
-                            <label className="form-label">Email</label>
+                            <label className="form-label">Email</label><span className='text-danger'>*</span>
                             <input
                                 type="email"
                                 {...register('email')}
@@ -91,7 +95,7 @@ export default function Signup() {
                             </div>
                         </div>
                         <div className="mb-1">
-                            <label className="form-label">Address</label>
+                            <label className="form-label">Address</label><span className='text-danger'>*</span>
                             <input
                                 type="address"
                                 {...register('address')}
@@ -104,7 +108,7 @@ export default function Signup() {
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Password</label>
+                            <label className="form-label">Password</label><span className='text-danger'>*</span>
                             <div className="input-group">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
@@ -124,7 +128,10 @@ export default function Signup() {
                             </div>
                         </div>
                         <div className='d-flex flex-column justify-content-center'>
-                            <button type="submit" className="btn btn-primary w-100">Signup</button>
+                            <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>
+                                Signup
+                                {isLoading && <Spinner size='sm' className='mx-2' />}
+                            </button>
                             <p className="text-center mb-4 font-size-medium second-primary-color ">
                                 <span className='font-size-small fst-italic'>OR</span><br />
                                 Already have an account? <Link to="/login">Login</Link>

@@ -8,7 +8,9 @@ import { Eye, EyeOff } from 'lucide-react';
 import * as yup from 'yup';
 import { createUser, getUsers } from '../../../APIs';
 import { toast } from 'react-toastify';
-// import storeImage1 from '../../../images/store.png'
+import Pagination from 'react-bootstrap/Pagination';
+import { Spinner } from 'react-bootstrap';
+
 const rolesOptions = [
     { id: 1, role: rolesLables.systemAdmin, value: rolesLables.systemAdmin },
     { id: 2, role: rolesLables.storeOwner, value: rolesLables.storeOwner },
@@ -18,9 +20,12 @@ const rolesOptions = [
 const UsersList = () => {
 
     const storeSchema = yup.object().shape({
-        name: yup.string().min(3, 'Min 3 characters').max(60, 'Max 60 characters').required('Store Name is required'),
+        name: yup.string().min(20, 'Min 20 characters').max(60, 'Max 60 characters').required('Store Name is required'),
         email: yup.string().email('Invalid email').required('Email is required'),
-        password: yup.string().min(6, 'Min 6 characters').required('Password is required'),
+        password: yup.string().min(8, 'Min 8 characters').max(16, 'Max 16 characters')
+            .matches(/[A-Z]/, 'Must contain at least one uppercase letter')
+            .matches(/[!@#$%^&*]/, 'Must contain at least one special character')
+            .required('Password is required'),
         address: yup.string().max(400, 'Max 400 characters').required('Address is required'),
         role: yup.string().required('Role is required '),
     })
@@ -28,6 +33,7 @@ const UsersList = () => {
         register,
         handleSubmit,
         formState: { errors },
+        reset,
     } = useForm({
         resolver: yupResolver(storeSchema),
     });
@@ -37,9 +43,10 @@ const UsersList = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [sortDir, setSortDir] = useState(null);
     const [sortField, setSortField] = useState(null);
-
+    const [currentPage, setCurrentPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [isSaving, setIsSaving] = useState(false);
     const handleClose = () => {
-
         setShow(false)
     };
     const handleShow = () => {
@@ -47,11 +54,11 @@ const UsersList = () => {
     };
     useEffect(() => {
         fetch_users();
-    }, [searchTerm, sortField, sortDir])
+    }, [searchTerm, sortField, sortDir, currentPage])
     async function fetch_users() {
         const payload = {
             entriesPerPage: 10,
-            currentPage: 1,
+            currentPage: currentPage,
             ...(searchTerm && { searchTerm }),
             ...(sortField && sortDir && { [sortField]: sortDir })
         }
@@ -60,17 +67,19 @@ const UsersList = () => {
         try {
             const response = await getUsers(payload);
             console.log('response: ', response);
+            const totalPage = Math.ceil(response?.data?.total / 10);
+            setTotal(totalPage);
             setUserData({ data: response?.data?.data, loading: false })
             console.log('data:response?.data?.data: ', response?.data?.data);
 
         } catch (error) {
             console.log('error: ', error);
             setUserData({ data: [], loading: false })
-
+            setTotal(0);
         }
     }
     const onSubmit = async (data) => {
-        console.log('USer data:', data);
+        setIsSaving(true);
         try {
             const response = await createUser(data);
             console.log('response: ', response?.data);
@@ -80,13 +89,15 @@ const UsersList = () => {
             })
             fetch_users();
             setShow(false);
+            reset();
+            setIsSaving(false);
         } catch (error) {
             console.log('error: ', error);
-            toast.error("Failed to add user", {
+            toast.error(error?.response?.data?.error || "Failed to add user", {
                 autoClose: 2000,
                 position: 'top-right'
             })
-
+            setIsSaving(false);
         }
     };
     const handleSort = (field) => {
@@ -109,7 +120,7 @@ const UsersList = () => {
                 <input
                     type="text"
                     className='form-control '
-                    placeholder='Search Stores...'
+                    placeholder='Search'
                     style={{ maxWidth: '400px' }}
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
@@ -144,16 +155,18 @@ const UsersList = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {userData?.data?.length === 0 ? (
+                        {userData?.loading ? (
                             <tr>
-                                <td colSpan="6" className="text-center">No Users Found</td>
+                                <td colSpan="6" className="text-center"><Spinner /></td>
                             </tr>
                         ) :
-                            userData?.loading ?
-                                <>loading....</> :
+                            userData?.data?.length === 0 ?
+                                <tr>
+                                    <td colSpan="6" className="text-center">No Users Found</td>
+                                </tr> :
                                 userData?.data?.map((user, ind) =>
                                     <tr key={ind}>
-                                        <th scope="row">{ind + 1}</th>
+                                        <th scope="row" className='text-center'>{(currentPage - 1) * 10 + ind + 1}</th>
                                         <td>{user.name}</td>
                                         <td>{user.email}</td>
                                         <td>{user.address}</td>
@@ -164,7 +177,29 @@ const UsersList = () => {
                     </tbody>
                 </table>
             </div>
+            <div className="d-flex justify-content-center">
+                <Pagination>
+                    <Pagination.Prev
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    />
 
+                    {Array.from({ length: total }, (_, i) => (
+                        <Pagination.Item
+                            key={i + 1}
+                            active={i + 1 === currentPage}
+                            onClick={() => setCurrentPage(i + 1)}
+                        >
+                            {i + 1}
+                        </Pagination.Item>
+                    ))}
+
+                    <Pagination.Next
+                        disabled={currentPage === total}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, total))}
+                    />
+                </Pagination>
+            </div>
             <Modal
                 show={show}
                 onHide={handleClose}
@@ -180,7 +215,7 @@ const UsersList = () => {
                             <div className=' p-4'>
                                 <form onSubmit={handleSubmit(onSubmit)} noValidate>
                                     <div className="mb-1">
-                                        <label className="form-label">Name</label>
+                                        <label className="form-label">Name</label><span className='text-danger'>*</span>
                                         <input
                                             type="name"
                                             {...register('name')}
@@ -192,7 +227,7 @@ const UsersList = () => {
                                         </div>
                                     </div>
                                     <div className="mb-1">
-                                        <label className="form-label">Email</label>
+                                        <label className="form-label">Email</label><span className='text-danger'>*</span>
                                         <input
                                             type="email"
                                             {...register('email')}
@@ -204,7 +239,7 @@ const UsersList = () => {
                                         </div>
                                     </div>
                                     <div className="mb-1">
-                                        <label className="form-label">Password</label>
+                                        <label className="form-label">Password</label><span className='text-danger'>*</span>
                                         <div className="input-group">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
@@ -224,7 +259,7 @@ const UsersList = () => {
                                         </div>
                                     </div>
                                     <div className="mb-1">
-                                        <label className="form-label">Address</label>
+                                        <label className="form-label">Address</label><span className='text-danger'>*</span>
                                         <input
                                             type="address"
                                             {...register('address')}
@@ -237,12 +272,12 @@ const UsersList = () => {
                                     </div>
 
                                     <div className="mb-3">
-                                        <label className="form-label">Select Role</label>
+                                        <label className="form-label">Select Role</label><span className='text-danger'>*</span>
                                         <select
                                             {...register('role')}
                                             className={`form-control ${errors.role ? 'is-invalid' : ''}`}
                                         >
-                                            <option value="">-- Select Role --</option>
+                                            <option value="">Select Role</option>
                                             {rolesOptions.map((role) => (
                                                 <option key={role.id} value={role.value}>
                                                     {role.role}
@@ -254,7 +289,10 @@ const UsersList = () => {
                                         </div>
                                     </div>
                                     <div className='d-flex flex-column justify-content-center'>
-                                        <button type="submit" className="btn btn-primary w-100">Save</button>
+                                        <button type="submit" className="btn btn-primary w-100" disabled={isSaving}>
+                                            Save
+                                            {isSaving && <Spinner size='sm' className='mx-2' />}
+                                        </button>
 
                                     </div>
                                 </form>

@@ -5,16 +5,18 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
+import Pagination from 'react-bootstrap/Pagination';
 
 import * as yup from 'yup';
 import { createStore, getStores, getUsers } from '../../../APIs';
 import { toast } from 'react-toastify';
+import { Spinner } from 'react-bootstrap';
 // import storeImage1 from '../../../images/store.png'
 
 const StoreList = () => {
 
     const storeSchema = yup.object().shape({
-        name: yup.string().min(3, 'Min 3 characters').max(60, 'Max 60 characters').required('Store Name is required'),
+        name: yup.string().min(20, 'Min 20 characters').max(60, 'Max 60 characters').required('Store Name is required'),
         email: yup.string().email('Invalid email').required('Email is required'),
         address: yup.string().max(400, 'Max 400 characters').required('Address is required'),
         user_id: yup.string().required('Store Owner is required '),
@@ -23,6 +25,7 @@ const StoreList = () => {
         register,
         handleSubmit,
         control,
+        reset,
         formState: { errors },
     } = useForm({
         resolver: yupResolver(storeSchema),
@@ -33,6 +36,10 @@ const StoreList = () => {
     const [userData, setUserData] = useState({ data: [], loading: true });
     const [sortDir, setSortDir] = useState(null);
     const [sortField, setSortField] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [isSaving, setIsSaving] = useState(false);
+
     const handleClose = () => {
 
         setShow(false)
@@ -47,11 +54,11 @@ const StoreList = () => {
     }, [])
     useEffect(() => {
         fetch_stores();
-    }, [searchTerm, sortField, sortDir])
+    }, [searchTerm, sortField, sortDir, currentPage])
     async function fetch_stores() {
         const payload = {
             enteriesPerPage: 10,
-            currentPage: 1,
+            currentPage: currentPage,
             ...(searchTerm && { searchTerm }),
             ...(sortField && sortDir && { [sortField]: sortDir })
         }
@@ -73,7 +80,9 @@ const StoreList = () => {
                     overallRating: overallRating
                 };
             });
-            console.log("required_data", required_data)
+            console.log("required_data", required_data);
+            const totalPages = Math.ceil(response?.data?.totalStores / 10);
+            setTotal(totalPages);
             setStoreData({ data: required_data, loading: false })
         } catch (error) {
             console.log('error: ', error);
@@ -97,7 +106,7 @@ const StoreList = () => {
         }
     }
     const onSubmit = async (data) => {
-        console.log('Store data:', data);
+        setIsSaving(true);
         try {
             const response = await createStore(data);
             console.log('response: ', response?.data);
@@ -107,14 +116,17 @@ const StoreList = () => {
             })
             fetch_stores();
             setShow(close);
-
+            reset();
+            setIsSaving(false);
         } catch (error) {
-            console.log('error: ', error);
-            toast.error("Failed to add store", {
+            console.log('error: ', error?.response?.data?.message);
+            toast.error(error?.response?.data?.message || "Failed to add store", {
                 autoClose: 2000,
                 position: 'top-right'
             })
-            setShow(close);
+            // setShow(close);
+            setIsSaving(false);
+            // reset();
         }
     };
 
@@ -139,7 +151,7 @@ const StoreList = () => {
                 <input
                     type="text"
                     className='form-control '
-                    placeholder='Search Stores...'
+                    placeholder='Search Stores or address'
                     style={{ maxWidth: '400px' }}
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
@@ -149,7 +161,7 @@ const StoreList = () => {
             <div className='table-responsive'>
                 <table className="table  table-bordered">
                     <thead>
-                        <tr>
+                        <tr className='text-center'>
                             <th scope="col">Sr.No</th>
                             <th scope="col">
                                 <div style={{ cursor: 'pointer' }} onClick={() => handleSort('name')}>
@@ -169,18 +181,21 @@ const StoreList = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {storeData.data.length === 0 ? (
+                        {storeData?.loading ? (
                             <tr>
-                                <td colSpan="6" className="text-center">No Stores Found</td>
+                                <td colSpan="6" className="text-center"><Spinner /></td>
                             </tr>
                         ) :
-                            storeData.data.map((store, ind) =>
-                                <tr key={ind}>
-                                    <th scope="row">{ind + 1}</th>
-                                    <td>{store.name}</td>
-                                    <td>{store.address}</td>
-                                    <td>
-                                        <p className=''>
+                            storeData?.data?.length === 0 ?
+                                <tr>
+                                    <td colSpan="6" className="text-center">No Stores Found</td>
+                                </tr> :
+                                storeData.data.map((store, ind) =>
+                                    <tr key={ind}>
+                                        <th scope="row" className='text-center'>{(currentPage - 1) * 10 + ind + 1}</th>
+                                        <td>{store.name}</td>
+                                        <td>{store.address}</td>
+                                        <td className='text-center'>
                                             {[1, 2, 3, 4, 5].map(i => (
                                                 <Star
                                                     key={i}
@@ -189,14 +204,36 @@ const StoreList = () => {
                                                 />
                                             ))}
 
-                                        </p>
-                                    </td>
+                                        </td>
 
-                                </tr>
-                            )
+                                    </tr>
+                                )
                         }
                     </tbody>
                 </table>
+            </div>
+            <div className="d-flex justify-content-center">
+                <Pagination>
+                    <Pagination.Prev
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    />
+
+                    {Array.from({ length: total }, (_, i) => (
+                        <Pagination.Item
+                            key={i + 1}
+                            active={i + 1 === currentPage}
+                            onClick={() => setCurrentPage(i + 1)}
+                        >
+                            {i + 1}
+                        </Pagination.Item>
+                    ))}
+
+                    <Pagination.Next
+                        disabled={currentPage === total}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, total))}
+                    />
+                </Pagination>
             </div>
 
             <Modal
@@ -206,7 +243,7 @@ const StoreList = () => {
                 keyboard={false}
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Modal title</Modal.Title>
+                    <Modal.Title>Add Store</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="container d-flex justify-content-center align-items-center" >
@@ -214,7 +251,7 @@ const StoreList = () => {
                             <div className=' p-4'>
                                 <form onSubmit={handleSubmit(onSubmit)} noValidate>
                                     <div className="mb-1">
-                                        <label className="form-label">Name</label>
+                                        <label className="form-label">Name</label><span className='text-danger'>*</span>
                                         <input
                                             type="name"
                                             {...register('name')}
@@ -226,7 +263,7 @@ const StoreList = () => {
                                         </div>
                                     </div>
                                     <div className="mb-1">
-                                        <label className="form-label">Email</label>
+                                        <label className="form-label">Email</label><span className='text-danger'>*</span>
                                         <input
                                             type="name"
                                             {...register('email')}
@@ -239,7 +276,7 @@ const StoreList = () => {
                                     </div>
 
                                     <div className="mb-1">
-                                        <label className="form-label">Address</label>
+                                        <label className="form-label">Address</label><span className='text-danger'>*</span>
                                         <input
                                             type="address"
                                             {...register('address')}
@@ -252,7 +289,7 @@ const StoreList = () => {
                                     </div>
 
                                     <div className="mb-3">
-                                        <label className="form-label">Select Owner</label>
+                                        <label className="form-label">Select Owner</label><span className='text-danger'>*</span>
                                         <Controller
                                             name="user_id"
                                             control={control}
@@ -289,7 +326,10 @@ const StoreList = () => {
                                         </div>
                                     </div>
                                     <div className='d-flex flex-column justify-content-center'>
-                                        <button type="submit" className="btn btn-primary w-100">Save</button>
+                                        <button type="submit" className="btn btn-primary w-100" disabled={isSaving}>
+                                            Save
+                                            {isSaving && <Spinner size='sm' className='mx-2' />}
+                                        </button>
                                     </div>
                                 </form>
                             </div>
