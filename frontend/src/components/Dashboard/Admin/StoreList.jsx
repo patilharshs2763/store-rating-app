@@ -41,7 +41,7 @@ const StoreList = () => {
     const [isSaving, setIsSaving] = useState(false);
 
     const handleClose = () => {
-
+        reset()
         setShow(false)
     };
     const handleShow = () => {
@@ -143,7 +143,7 @@ const StoreList = () => {
         <div className='container mt-2'>
             <h4>List of Stores</h4>
             <div className='d-flex flex-column flex-md-row  justify-content-between mb-3'>
-                <button type="button" className="btn btn-primary"
+                <button type="button" className="btn edit_button"
                     onClick={() => handleShow()}
                 >
                     Add New Store
@@ -188,7 +188,7 @@ const StoreList = () => {
                         ) :
                             storeData?.data?.length === 0 ?
                                 <tr>
-                                    <td colSpan="6" className="text-center">No Stores Found</td>
+                                    <td colSpan="6" className="text-center fw-bold text-danger">No Stores Found</td>
                                 </tr> :
                                 storeData.data.map((store, ind) =>
                                     <tr key={ind}>
@@ -215,7 +215,7 @@ const StoreList = () => {
             <div className="d-flex justify-content-center">
                 <Pagination>
                     <Pagination.Prev
-                        disabled={currentPage === 1}
+                        disabled={currentPage === 1 || storeData?.data?.length === 0}
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     />
 
@@ -230,7 +230,7 @@ const StoreList = () => {
                     ))}
 
                     <Pagination.Next
-                        disabled={currentPage === total}
+                        disabled={currentPage === total || storeData?.data?.length === 0}
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, total))}
                     />
                 </Pagination>

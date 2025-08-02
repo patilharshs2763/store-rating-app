@@ -101,7 +101,7 @@ export default function Login() {
                                     className={`form-control ${errors.password ? 'is-invalid' : ''}`}
                                 />
                                 <span
-                                    className="input-group-text bg-white"
+                                    className={`input-group-text bg-transparent ${errors.password ? "border-danger" : ""}`}
                                     onClick={() => setShowPassword(!showPassword)}
                                     style={{ cursor: 'pointer' }}
                                 >
@@ -113,8 +113,8 @@ export default function Login() {
                                 {console.log('errors: ', errors.password?.message)}
                             </div>
                         </div>
-                        <div className='d-flex flex-column justify-content-center'>
-                            <button type="submit" className="btn btn-primary w-100" disabled={isLogging}>
+                        <div className='d-flex flex-column justify-content-center align-items-center'>
+                            <button type="submit" className="btn button_style" disabled={isLogging}>
                                 Login
                                 {isLogging && <Spinner size='sm' className='mx-2' />}
                             </button>

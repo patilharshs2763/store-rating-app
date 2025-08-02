@@ -58,7 +58,7 @@ const DashboardAdmin = () => {
                             <div className="card-body">
                                 <h5 className="card-title">Total Users</h5>
                                 <p className="card-text">{data?.data[0]?.totalUsers}</p>
-                                <Link to='/users' className="btn btn-primary">View Users</Link>
+                                <Link to='/users' className="btn round_button">View Users</Link>
                             </div>
                         </div>
                     </div>
@@ -67,7 +67,7 @@ const DashboardAdmin = () => {
                             <div className="card-body">
                                 <h5 className="card-title">Total Stores</h5>
                                 <p className="card-text">{data?.data[0]?.totalStores}</p>
-                                <Link to='/stores' className="btn btn-primary">View Stores</Link>
+                                <Link to='/stores' className="btn round_button">View Stores</Link>
                             </div>
                         </div>
                     </div>

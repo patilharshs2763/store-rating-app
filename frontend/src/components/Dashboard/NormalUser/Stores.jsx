@@ -161,7 +161,7 @@ const Stores = () => {
                         ) :
                             storeData.data.length === 0 ?
                                 <tr>
-                                    <td colSpan="6" className="text-center">No Stores Found</td>
+                                    <td colSpan="6" className="text-center fw-bold text-danger">No Stores Found</td>
                                 </tr> :
                                 storeData.data.map((store, ind) =>
                                     <tr key={ind}>

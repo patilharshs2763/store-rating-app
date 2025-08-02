@@ -119,7 +119,7 @@ const DashboardStoreOwner = () => {
                             :
                             data?.data?.length === 0 ?
                                 <tr>
-                                    <td colSpan={10} className='text-center'>No data found</td>
+                                    <td colSpan={10} className='text-center fw-bold text-danger'>No data found</td>
                                 </tr>
                                 :
                                 data?.data?.map((item, ind) =>
@@ -148,7 +148,7 @@ const DashboardStoreOwner = () => {
             <div className="d-flex justify-content-center">
                 <Pagination>
                     <Pagination.Prev
-                        disabled={currentPage === 1}
+                        disabled={currentPage === 1 || data?.data?.length === 0}
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     />
 
@@ -163,7 +163,7 @@ const DashboardStoreOwner = () => {
                     ))}
 
                     <Pagination.Next
-                        disabled={currentPage === total}
+                        disabled={currentPage === total || data?.data?.length === 0}
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, total))}
                     />
                 </Pagination>

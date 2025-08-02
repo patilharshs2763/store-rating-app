@@ -116,19 +116,19 @@ export default function Signup() {
                                     className={`form-control ${errors.password ? 'is-invalid' : ''}`}
                                 />
                                 <span
-                                    className="input-group-text bg-white"
+                                    className={`input-group-text bg-transparent ${errors.password ? "border-danger" : ""}`}
                                     onClick={() => setShowPassword(!showPassword)}
                                     style={{ cursor: 'pointer' }}
                                 >
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </span>
                             </div>
-                            <div className="invalid-feedback">
+                            <div className="invalid-feedback d-block">
                                 {errors.password?.message}
                             </div>
                         </div>
-                        <div className='d-flex flex-column justify-content-center'>
-                            <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>
+                        <div className='d-flex flex-column justify-content-center align-items-center'>
+                            <button type="submit" className="btn button_style" disabled={isLoading}>
                                 Signup
                                 {isLoading && <Spinner size='sm' className='mx-2' />}
                             </button>

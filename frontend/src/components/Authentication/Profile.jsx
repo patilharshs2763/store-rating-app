@@ -78,7 +78,7 @@ const Profile = () => {
                                     className={`form-control ${errors?.new_password ? 'is-invalid' : ''}`}
                                 />
                                 <span
-                                    className="input-group-text"
+                                    className={`input-group-text bg-transparent ${errors.new_password ? "border-danger" : ""}`}
                                     onClick={() => setShowPassword(!showPassword)}
                                     style={{ cursor: 'pointer' }}
                                 >
@@ -89,7 +89,7 @@ const Profile = () => {
                                 )}
                             </div>
                         </div>
-                        <button type="submit" className="btn btn-primary w-100" disabled={isUpdating}>
+                        <button type="submit" className="btn edit_button w-100" disabled={isUpdating}>
                             Update Password
                             {isUpdating && <Spinner size='sm' className='mx-2' />}
                         </button>

@@ -48,6 +48,7 @@ const UsersList = () => {
     const [isSaving, setIsSaving] = useState(false);
     const handleClose = () => {
         setShow(false)
+        reset();
     };
     const handleShow = () => {
         setShow(true);
@@ -112,7 +113,7 @@ const UsersList = () => {
         <div className='container mt-2'>
             <h4>List of Users</h4>
             <div className='d-flex flex-column flex-md-row  justify-content-between mb-3'>
-                <button type="button" className="btn btn-primary"
+                <button type="button" className="btn edit_button"
                     onClick={() => handleShow()}
                 >
                     Add New User
@@ -162,7 +163,7 @@ const UsersList = () => {
                         ) :
                             userData?.data?.length === 0 ?
                                 <tr>
-                                    <td colSpan="6" className="text-center">No Users Found</td>
+                                    <td colSpan="6" className="text-center text-danger fw-bold">No Users Found</td>
                                 </tr> :
                                 userData?.data?.map((user, ind) =>
                                     <tr key={ind}>
@@ -187,7 +188,7 @@ const UsersList = () => {
                     {Array.from({ length: total }, (_, i) => (
                         <Pagination.Item
                             key={i + 1}
-                            active={i + 1 === currentPage}
+                            active={i + 1 === currentPage || userData?.data?.length === 0}
                             onClick={() => setCurrentPage(i + 1)}
                         >
                             {i + 1}
@@ -195,7 +196,7 @@ const UsersList = () => {
                     ))}
 
                     <Pagination.Next
-                        disabled={currentPage === total}
+                        disabled={currentPage === total || userData?.data?.length === 0}
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, total))}
                     />
                 </Pagination>
@@ -247,14 +248,14 @@ const UsersList = () => {
                                                 className={`form-control ${errors.password ? 'is-invalid' : ''}`}
                                             />
                                             <span
-                                                className="input-group-text bg-white"
+                                                className={`input-group-text bg-transparent ${errors.password ? "border-danger" : ""}`}
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 style={{ cursor: 'pointer' }}
                                             >
                                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                             </span>
                                         </div>
-                                        <div className="invalid-feedback">
+                                        <div className="invalid-feedback d-block">
                                             {errors.password?.message}
                                         </div>
                                     </div>
@@ -289,7 +290,7 @@ const UsersList = () => {
                                         </div>
                                     </div>
                                     <div className='d-flex flex-column justify-content-center'>
-                                        <button type="submit" className="btn btn-primary w-100" disabled={isSaving}>
+                                        <button type="submit" className="btn edit_button w-100" disabled={isSaving}>
                                             Save
                                             {isSaving && <Spinner size='sm' className='mx-2' />}
                                         </button>

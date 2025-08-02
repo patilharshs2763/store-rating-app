@@ -3,7 +3,7 @@
 }
 
 .navbar_style {
-    background-color: rgb(223, 220, 220);
+    background-color: #F5EFFF;
     color: black;
 }
 
@@ -13,4 +13,54 @@
 
 .stat_card {
     box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, rgba(0, 0, 0, 0.07) 0px 2px 4px, rgba(0, 0, 0, 0.07) 0px 4px 8px, rgba(0, 0, 0, 0.07) 0px 8px 16px, rgba(0, 0, 0, 0.07) 0px 16px 32px, rgba(0, 0, 0, 0.07) 0px 32px 64px;
+}
+
+.button_style {
+    width: 260px;
+    letter-spacing: 3px;
+}
+
+.button_style,
+.round_button,
+.edit_button {
+
+    background-color: #3674B5;
+    color: white;
+}
+
+.button_style:hover,
+.button_style:disabled,
+.round_button:hover,
+.round_button:disabled,
+.edit_button:hover,
+.edit_button:disabled {
+    background-color: #578FCA;
+    color: white;
+}
+
+.round_button {
+    border-radius: 20px;
+}
+
+.cancel_button {
+    background-color: #CB0404;
+    color: white;
+}
+
+.cancel_button:hover,
+.cancel_button:disabled {
+    background-color: #cb0404af;
+    color: white;
+
+}
+
+.done_button {
+    background-color: #3CCF4E;
+    color: white;
+}
+
+.done_button:hover,
+.done_button:disabled {
+    background-color: #3ccf4d91;
+    color: white;
 }
